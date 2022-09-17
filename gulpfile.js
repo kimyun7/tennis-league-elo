@@ -6,16 +6,16 @@ var watchify = require('watchify');
 var babelify = require('babelify');
 var notifier = require('node-notifier');
 var concat = require('gulp-concat');
-var sass = require('gulp-sass');
 var minifyCss = require('gulp-minify-css');
 var watch = require('gulp-watch');
 var uglify = require('gulp-uglify');
 var buffer = require('vinyl-buffer');
 var browserSync = require('browser-sync');
 var historyApiFallback = require('connect-history-api-fallback');
-
+var sass = require('gulp-sass')(require('sass'));
 var prod = process.env.NODE_ENV == 'production';
-
+var cleanCSS = require('gulp-clean-css');
+var cssimport = require('gulp-cssimport');
 
 var notify = function(error) {
   var message = 'In: ';
@@ -82,7 +82,8 @@ gulp.task('sass', function () {
   return gulp.src('./sass/**/*.scss')
     .pipe(sass().on('error', sass.logError))
     .pipe(concat('style.css'))
-    .pipe(minifyCss())
+    .pipe(cssimport())
+    .pipe(cleanCSS())
     .pipe(gulp.dest('./dist/'))
     .pipe(browserSync.reload({stream: true}));
 });
@@ -97,10 +98,10 @@ gulp.task('watch', function () {
 });
 
 // use: npm run start
-gulp.task('default', ['js', 'copy', 'sass', 'serve', 'watch']);
+gulp.task('default', gulp.series(['js', 'copy', 'sass', 'serve', 'watch']));
 
 // use: npm run build
-gulp.task('build', ['js', 'copy', 'sass']);
+gulp.task('build', gulp.series(['js', 'copy', 'sass']));
 
 gulp.doneCallback = function (err) {
   if( prod ) process.exit(err ? 1 : 0);
